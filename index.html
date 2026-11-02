@@ -111,6 +111,23 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
 .task-add input { flex:1; min-width:0; border:1px solid var(--line); background:var(--surface); color:var(--text); border-radius:10px; padding:10px 12px; }
 .task-add .btn { white-space:nowrap; }
 .task-empty { color:var(--muted); font-size:12px; padding:8px 0; }
+.goal-line { margin-top:10px; font-size:13px; font-weight:650; color:var(--muted); }
+.parent-block { display:flex; flex-direction:column; gap:5px; }
+.parent-block + .parent-block { margin-top:6px; }
+.parent-row { background:var(--surface-soft); }
+.parent-row label, .goal-parent label { font-weight:750; }
+.sub-entry { margin-left:22px; display:flex; flex-direction:column; gap:4px; }
+.sub-entry .task-comment-display { margin-left:12px; }
+.sub-count { flex:0 0 auto; font-size:10px; color:var(--muted); white-space:nowrap; }
+.slot-tag { flex:0 0 auto; font-size:10px; color:var(--muted); background:var(--surface-soft); border-radius:6px; padding:3px 6px; white-space:nowrap; }
+.task-row .task-plus { font-size:14px; font-weight:800; line-height:1; padding:4px 9px; color:var(--text); }
+.task-edit-input { flex:1; min-width:0; border:1px solid var(--site-primary); background:var(--surface); color:var(--text); border-radius:7px; padding:5px 8px; font-size:12px; }
+.sub-add { margin:0 0 0 22px; }
+.sub-add input { padding:8px 10px; font-size:12px; }
+.sub-add .btn { padding:7px 10px; font-size:11px; }
+.sub-readonly input[type=checkbox] { cursor:default; }
+.unassigned-title { margin:12px 0 6px; font-size:11px; font-weight:750; color:var(--muted); }
+.type-goal { white-space:nowrap; font-size:10px; }
 .layout { display:grid; grid-template-columns:minmax(0,1fr) 285px; gap:16px; align-items:start; }
 .panel { border:1px solid var(--line); background:var(--surface); border-radius:var(--radius); overflow:hidden; min-width:0; }
 .panel-head { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:17px 18px; border-bottom:1px solid var(--line); }
@@ -209,7 +226,7 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
       <div class="week-switch"><button id="prevWeek" aria-label="이전 주">‹</button><div class="week-label" id="weekLabel">날짜 불러오는 중</div><button id="nextWeek" aria-label="다음 주">›</button><button id="thisWeek" class="btn" style="padding:8px 10px">이번 주</button></div>
     </section>
     <section class="summary" aria-label="주간 블럭 배정 현황">
-      <div class="stat"><div class="stat-label"><span class="mini-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>주간 배정 현황 · 가용 블럭</div><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭 배정 · 42블럭 남음</span></div><div class="progress"><span id="progressBar"></span></div><div class="allocation-list" id="allocationList"></div></div>
+      <div class="stat"><div class="stat-number"><strong id="assignedCount">0</strong><span id="availabilityText">/ 42 블럭</span></div><div class="goal-line" id="goalSummary">주간 목표 0/0</div></div>
     </section>
     <section class="layout">
       <div class="panel calendar-panel">
@@ -244,10 +261,10 @@ h2 { font-size:calc(27px * var(--site-heading-scale)); line-height:1.1; letter-s
   <div class="modal"><h3 id="modalTitle">이번 주 계획을 비울까요?</h3><p id="modalText">시간표의 배정이 모두 지워집니다. 저장해 둔 과거 기록은 유지됩니다.</p><div class="modal-actions"><button class="btn" id="modalCancel">취소</button><button class="btn primary" id="modalConfirm">비우기</button></div></div>
 </div>
 <div class="modal-backdrop" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>이 블럭에서 할 일을 추가하고 완료 여부와 피드백을 기록할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="taskModalTitle">블럭 체크리스트</h3><button class="small-action" id="taskModalClose" type="button" aria-label="체크리스트 닫기">닫기 ×</button></div><p>상위 투두는 보기만 가능해요. ＋ 버튼으로 이 블럭의 하위 투두를 추가하고, 완료 여부와 피드백을 기록할 수 있어요.</p><div class="task-content" id="taskContent"><div class="task-empty">시간표에서 배정된 블럭을 선택해 주세요.</div></div></div>
 </div>
 <div class="modal-backdrop" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
-  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="goalModalTitle">주간 목표</h3><button class="small-action" id="goalModalClose" type="button" aria-label="주간 목표 닫기">닫기 ×</button></div><p>이번 주 이 블럭 종류에서 달성할 목표를 적고, 완료 여부와 피드백을 기록해요.</p><div class="task-content" id="goalContent"><div class="task-empty">주간 배정 현황에서 블럭을 선택해 주세요.</div></div></div>
+  <div class="modal task-modal"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px"><h3 id="goalModalTitle">주간 목표</h3><button class="small-action" id="goalModalClose" type="button" aria-label="주간 목표 닫기">닫기 ×</button></div><p>이번 주 이 블럭 종류의 상위 투두를 관리해요. 시간표에서 추가한 하위 투두는 아래에 모아서 보여 드려요(보기 전용).</p><div class="task-content" id="goalContent"><div class="task-empty">주간 배정 현황에서 블럭을 선택해 주세요.</div></div></div>
 </div>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -277,6 +294,9 @@ const googleProvider = new GoogleAuthProvider();
   let selectedGoalTypeId = null;
   let editingTypeId = null;
   let showAllTypes = false;
+  let editingGoalId = null;
+  let editingTaskId = null;
+  let addingSubFor = null;
   let dragData = null;
   let pendingConfirm = null;
   let state = { types: [], weeks: {}, currentWeek: weekKey(new Date()) };
@@ -426,14 +446,15 @@ const googleProvider = new GoogleAuthProvider();
     const sorted=state.types.map(t=>({type:t,count:currentWeek().slots.filter(s=>s===t.id).length})).sort((a,b)=>b.count-a.count||state.types.indexOf(a.type)-state.types.indexOf(b.type));
     const visible=showAllTypes?sorted:sorted.slice(0,10);
     list.innerHTML=visible.map(({type:t,count})=>{
-      return `<div class="type-item" draggable="true" data-type="${t.id}" title="클릭해서 선택하거나 시간표로 끌어 놓으세요."><span class="type-dot" style="background:${t.color}"></span><span class="type-name">${escapeHtml(t.name)}</span><span class="type-count">${count}칸</span><button class="type-edit" data-edit="${t.id}" aria-label="${escapeHtml(t.name)} 수정">···</button></div>`;
+      return `<div class="type-item" draggable="true" data-type="${t.id}" title="클릭해서 선택하거나 시간표로 끌어 놓으세요."><span class="type-dot" style="background:${t.color}"></span><span class="type-name">${escapeHtml(t.name)}</span><span class="type-count">${count}칸</span><button class="type-edit type-goal" data-goal-open="${t.id}" aria-label="${escapeHtml(t.name)} 주간 목표 열기" title="주간 목표(상위 투두) 열기">목표 ${goalStat(t.id)}</button><button class="type-edit" data-edit="${t.id}" aria-label="${escapeHtml(t.name)} 수정">···</button></div>`;
     }).join('');
     moreButton.hidden=sorted.length<=10;
     moreButton.textContent=showAllTypes?'접기 ↑':`나머지 블럭 ${sorted.length-10}개 더보기 ↓`;
     list.querySelectorAll('[data-type]').forEach(el=>{
-      el.addEventListener('click',e=>{if(e.target.closest('[data-edit]')) return; selectedTypeId=el.dataset.type; renderTypes(); toast('선택됨 · 빈 시간표 칸을 눌러 배정하세요.');});
+      el.addEventListener('click',e=>{if(e.target.closest('[data-edit]')||e.target.closest('[data-goal-open]')) return; selectedTypeId=el.dataset.type; renderTypes(); toast('선택됨 · 빈 시간표 칸을 눌러 배정하세요.');});
       el.addEventListener('dragstart',e=>{dragData={typeId:el.dataset.type, fromSlot:null}; e.dataTransfer.setData('text/plain',JSON.stringify(dragData)); e.dataTransfer.effectAllowed='copy';});
     });
+    list.querySelectorAll('[data-goal-open]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();selectedGoalTypeId=b.dataset.goalOpen;editingGoalId=null;renderGoals();$('goalModal').classList.add('open');}));
     list.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();startEdit(b.dataset.edit);}));
     list.querySelectorAll('[data-type]').forEach(el=>el.style.outline=el.dataset.type===selectedTypeId?'2px solid var(--site-primary)':'none');
   }
@@ -456,7 +477,7 @@ const googleProvider = new GoogleAuthProvider();
       const idx=Number(el.dataset.slot);
       el.addEventListener('click',e=>{
         if(e.target.closest('[data-remove]')) return;
-        if(el.classList.contains('filled')) { selectedTaskSlot=idx; selectedTypeId=null; renderTypes(); renderTasks(); renderGrid(); $('taskModal').classList.add('open'); }
+        if(el.classList.contains('filled')) { selectedTaskSlot=idx; selectedTypeId=null; editingTaskId=null; addingSubFor=null; renderTypes(); renderTasks(); renderGrid(); $('taskModal').classList.add('open'); }
         else if(selectedTypeId) assign(idx,selectedTypeId);
         else toast('먼저 오른쪽에서 블럭 종류를 선택해 주세요.');
       });
@@ -469,24 +490,87 @@ const googleProvider = new GoogleAuthProvider();
     grid.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();currentWeek().slots[Number(b.dataset.remove)]=null;touchWeek();renderAll();}));
   }
   function assign(index,typeId) { if(!state.types.some(t=>t.id===typeId)) return; currentWeek().slots[index]=typeId; selectedTypeId=typeId; selectedTaskSlot=index; touchWeek(); renderAll(); }
-  function moveSlot(from,to) { if(from===to)return; const slots=currentWeek().slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; touchWeek(); renderAll(); }
+  function moveSlot(from,to) { if(from===to)return; const wk=currentWeek(); const slots=wk.slots; const target=slots[to]; slots[to]=slots[from]; slots[from]=target || null; if(!wk.tasks)wk.tasks={}; const a=wk.tasks[from], b=wk.tasks[to]; if(b===undefined) delete wk.tasks[from]; else wk.tasks[from]=b; if(a===undefined) delete wk.tasks[to]; else wk.tasks[to]=a; touchWeek(); renderAll(); }
   function touchWeek() { currentWeek().updatedAt=new Date().toISOString(); persist(); }
-  function renderStats() { const slots=currentWeek().slots; const count=slots.filter(Boolean).length; $('assignedCount').textContent=count; $('availabilityText').textContent=`/ 42 블럭 배정 · ${42-count}블럭 남음`; $('progressBar').style.width=(count/42*100)+'%'; const totals=state.types.map(type=>({type,count:slots.filter(id=>id===type.id).length})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count); $('allocationList').innerHTML=totals.length?totals.map(x=>{const goals=(currentWeek().goals||{})[x.type.id]||[];return `<button type="button" class="allocation-item" data-goal-type="${x.type.id}" aria-label="${escapeHtml(x.type.name)} 주간 목표 열기"><span class="allocation-dot" style="background:${x.type.color}"></span><div class="allocation-copy"><strong>${escapeHtml(x.type.name)}</strong><span>${x.count} / 42 블럭 · 주간 목표 ${goals.filter(g=>g.done).length}/${goals.length}</span></div><span class="allocation-value">${Math.round(x.count/42*100)}%　›</span></button>`;}).join(''):'<div class="task-empty">아직 배정된 블럭이 없어요.</div>'; $('allocationList').querySelectorAll('[data-goal-type]').forEach(b=>b.addEventListener('click',()=>{selectedGoalTypeId=b.dataset.goalType;renderGoals();$('goalModal').classList.add('open');})); }
+  function goalStat(typeId) { const goals=(currentWeek().goals||{})[typeId]||[]; return `${goals.filter(g=>g.done).length}/${goals.length}`; }
+  function slotLabel(idx) { return `${DAYS[idx%7]} · BLOCK ${String(Math.floor(idx/7)+1).padStart(2,'0')}`; }
+  function subTasksOfGoal(type, goalId) {
+    const wk=currentWeek(); const out=[];
+    wk.slots.forEach((typeId,idx)=>{ if(typeId!==type.id) return; ((wk.tasks||{})[idx]||[]).forEach(t=>{ if(t.parentId===goalId) out.push({task:t,idx}); }); });
+    return out;
+  }
+  function labelOrInput(id, text, isEditing, attr) {
+    return isEditing ? `<input class="task-edit-input" data-${attr}="${id}" value="${escapeHtml(text)}" maxlength="120" aria-label="내용 수정" autocomplete="off">` : `<label>${escapeHtml(text)}</label>`;
+  }
+  function wireInlineEdit(root, attr, save, cancel) {
+    const input=root.querySelector(`[data-${attr}]`); if(!input) return;
+    let finished=false;
+    const finish=ok=>{ if(finished) return; finished=true; ok?save(input.value.trim()):cancel(); };
+    input.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();finish(true);} else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(false);} });
+    input.addEventListener('blur',()=>finish(true));
+    input.focus(); input.setSelectionRange(input.value.length,input.value.length);
+  }
+  function wireFeedback(root, p) {
+    root.querySelectorAll(`[data-${p.toggle}]`).forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-${p.panel}="${el.dataset[p.toggleKey]}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
+    root.querySelectorAll(`[data-${p.edit}]`).forEach(el=>el.addEventListener('click',()=>{const id=el.dataset[p.editKey];const panel=root.querySelector(`[data-${p.panel}="${id}"]`);const display=root.querySelector(`[data-${p.display}="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}}));
+  }
+  function renderStats() {
+    const wk=currentWeek(); const count=wk.slots.filter(Boolean).length;
+    $('assignedCount').textContent=count; $('availabilityText').textContent='/ 42 블럭';
+    let total=0, done=0; Object.values(wk.goals||{}).forEach(arr=>{ if(Array.isArray(arr)){ total+=arr.length; done+=arr.filter(g=>g.done).length; } });
+    $('goalSummary').textContent=`주간 목표 ${done}/${total}`;
+  }
+  /* 주간 배정 현황(목표 창): 상위 투두만 편집 / 하위 투두는 보기 전용 */
   function renderGoals() {
     const root=$('goalContent');
     const type=state.types.find(t=>t.id===selectedGoalTypeId);
-    if(!type){root.innerHTML='<div class="task-empty">주간 배정 현황에서 블럭 종류를 선택해 주세요.</div>';return;}
-    const goals=(currentWeek().goals||{})[type.id]||[];
-    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(g=>`<div class="task-entry"><div class="task-row ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="주간 목표 완료"><label>${escapeHtml(g.text)}</label>${g.comment?`<button class="task-comment-toggle" type="button" data-edit-goal-comment="${g.id}">피드백 수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-goal-comment="${g.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="목표 삭제">×</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button type="button" data-edit-goal-comment="${g.id}">수정</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
-    root.querySelectorAll('[data-toggle-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-goal-feedback-panel="${el.dataset.toggleGoalComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();}));
-    root.querySelectorAll('[data-edit-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editGoalComment;const panel=root.querySelector(`[data-goal-feedback-panel="${id}"]`);const display=root.querySelector(`[data-goal-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}}));
-    root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;touchWeek();renderStats();renderGoals();}));
-    root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().goals[type.id]=goals.filter(g=>g.id!==el.dataset.goalDelete);touchWeek();renderStats();renderGoals();}));
-    root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment);const input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();touchWeek();renderStats();renderGoals();toast('주간 목표 피드백을 저장했어요.');}}));
-    const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});touchWeek();renderStats();renderGoals();$('goalInput').focus();};
+    if(!type){root.innerHTML='<div class="task-empty">내 블럭 목록에서 블럭 종류의 「목표」 버튼을 눌러 주세요.</div>';return;}
+    const week=ensureWeek(state.currentWeek);
+    const goals=Array.isArray(week.goals[type.id])?week.goals[type.id]:[];
+    const goalHtml=g=>{
+      const subs=subTasksOfGoal(type,g.id); const subDone=subs.filter(s=>s.task.done).length;
+      return `<div class="parent-block"><div class="task-entry"><div class="task-row goal-parent ${g.done?'done':''}"><input type="checkbox" data-goal-check="${g.id}" ${g.done?'checked':''} aria-label="상위 투두 완료">${labelOrInput(g.id,g.text,editingGoalId===g.id,'goal-edit-input')}${subs.length?`<span class="sub-count">하위 ${subDone}/${subs.length}</span>`:''}${g.comment?`<button class="task-comment-toggle" type="button" data-edit-goal-comment="${g.id}">피드백 수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-goal-comment="${g.id}" aria-expanded="false">피드백</button>`}<button class="task-comment-toggle" type="button" data-goal-edit="${g.id}">수정</button><button class="task-delete" type="button" data-goal-delete="${g.id}" aria-label="상위 투두 삭제">×</button></div><div class="task-comment-display" data-goal-comment-display="${g.id}" ${g.comment?'':'hidden'}>${escapeHtml(g.comment||'')}<button type="button" data-edit-goal-comment="${g.id}">수정</button></div><div class="task-feedback" data-goal-feedback-panel="${g.id}" hidden><textarea data-goal-comment="${g.id}" maxlength="1000" placeholder="목표 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(g.comment||'')}</textarea><button class="btn" type="button" data-save-goal-comment="${g.id}">저장</button></div></div>${subs.map(({task:t,idx})=>`<div class="sub-entry sub-readonly"><div class="task-row ${t.done?'done':''}"><input type="checkbox" disabled ${t.done?'checked':''} aria-label="하위 투두 완료 여부(보기 전용)"><label>${escapeHtml(t.text)}</label><span class="slot-tag">${slotLabel(idx)}</span></div>${t.comment?`<div class="task-comment-display">${escapeHtml(t.comment)}</div>`:''}</div>`).join('')}</div>`;
+    };
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${escapeHtml(type.name)} · 이번 주 목표</strong><span>${goals.filter(g=>g.done).length}/${goals.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(goalHtml).join(''):'<div class="task-empty">이번 주 목표가 없어요. 아래에서 추가해 주세요.</div>'}</div><form class="task-add" id="goalForm"><input id="goalInput" maxlength="120" placeholder="이번 주에 달성할 목표 추가" aria-label="주간 목표 입력" autocomplete="off"><button class="btn primary" id="addGoalButton" type="button">추가</button></form>`;
+    const refresh=()=>{touchWeek();renderStats();renderTypes();renderGoals();renderTasks();};
+    wireFeedback(root,{toggle:'toggle-goal-comment',toggleKey:'toggleGoalComment',edit:'edit-goal-comment',editKey:'editGoalComment',panel:'goal-feedback-panel',display:'goal-comment-display'});
+    root.querySelectorAll('[data-goal-check]').forEach(el=>el.addEventListener('change',()=>{const goal=goals.find(g=>g.id===el.dataset.goalCheck);if(goal)goal.done=el.checked;refresh();}));
+    root.querySelectorAll('[data-goal-edit]').forEach(el=>el.addEventListener('click',()=>{editingGoalId=el.dataset.goalEdit;renderGoals();}));
+    if(editingGoalId){ const g=goals.find(x=>x.id===editingGoalId); if(g) wireInlineEdit(root,`goal-edit-input="${g.id}"`,v=>{ if(v) g.text=v; else toast('내용을 입력해 주세요.'); editingGoalId=null; refresh(); },()=>{editingGoalId=null;renderGoals();}); else editingGoalId=null; }
+    root.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.goalDelete;const had=subTasksOfGoal(type,id).length;week.goals[type.id]=goals.filter(g=>g.id!==id);if(editingGoalId===id)editingGoalId=null;refresh();if(had)toast('상위 투두를 삭제했어요. 하위 투두는 시간표에서 「미지정」으로 남아 있어요.');}));
+    root.querySelectorAll('[data-save-goal-comment]').forEach(el=>el.addEventListener('click',()=>{const goal=goals.find(g=>g.id===el.dataset.saveGoalComment);const input=root.querySelector(`[data-goal-comment="${el.dataset.saveGoalComment}"]`);if(goal&&input){goal.comment=input.value.trim();refresh();toast('주간 목표 피드백을 저장했어요.');}}));
+    const addGoal=()=>{const input=$('goalInput');const value=input.value.trim();if(!value){toast('목표를 입력해 주세요.');input.focus();return;}if(!Array.isArray(week.goals[type.id]))week.goals[type.id]=[];week.goals[type.id].push({id:uid(),text:value,done:false,comment:''});refresh();$('goalInput').focus();};
     $('addGoalButton').addEventListener('click',addGoal);$('goalInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addGoal();}});$('goalForm').addEventListener('submit',e=>e.preventDefault());
   }
-  function renderTasks() { const root=$('taskContent'); const idx=selectedTaskSlot; const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]); if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 체크리스트를 관리할 수 있어요.</div>';return;} const tasks=(currentWeek().tasks||{})[idx]||[]; const day=DAYS[idx%7]; const block=Math.floor(idx/7)+1; root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${day}요일 · BLOCK ${String(block).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${tasks.length?tasks.map(t=>`<div class="task-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="할 일 완료"><label>${escapeHtml(t.text)}</label>${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">피드백</button>`}<button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="할 일 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`).join(''):'<div class="task-empty">이 블럭에 등록한 할 일이 없어요.</div>'}</div><form class="task-add" id="taskForm"><input id="taskInput" maxlength="120" placeholder="이 블럭에서 할 일 추가" aria-label="할 일 입력" autocomplete="off"><button class="btn primary" id="addTaskButton" type="button">추가</button></form>`; root.querySelectorAll('[data-toggle-comment]').forEach(el=>el.addEventListener('click',()=>{const panel=root.querySelector(`[data-feedback-panel="${el.dataset.toggleComment}"]`);panel.hidden=false;panel.querySelector('textarea').focus();})); root.querySelectorAll('[data-edit-comment]').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.editComment;const panel=root.querySelector(`[data-feedback-panel="${id}"]`);const display=root.querySelector(`[data-comment-display="${id}"]`);if(panel&&display){panel.hidden=false;display.hidden=true;panel.querySelector('textarea').focus();}})); root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;touchWeek();renderAll();})); root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{currentWeek().tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);touchWeek();renderAll();})); root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();touchWeek();renderAll();toast('피드백을 저장했어요.');}})); const addTask=()=>{const input=$('taskInput');const taskText=input.value.trim();if(!taskText){toast('할 일을 입력해 주세요.');input.focus();return;}const week=ensureWeek(state.currentWeek);if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text:taskText,done:false,comment:''});touchWeek();renderAll();$('taskModal').classList.add('open');$('taskInput').focus();}; $('addTaskButton').addEventListener('click',addTask); $('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask();}}); $('taskForm').addEventListener('submit',e=>e.preventDefault()); }
+  /* 주간 블럭 시간표(블럭 창): 상위 투두는 보기 전용 / 하위 투두만 추가·편집 */
+  function renderTasks() {
+    const root=$('taskContent'); const idx=selectedTaskSlot;
+    const type=idx===null?null:state.types.find(t=>t.id===currentWeek().slots[idx]);
+    if(idx===null||!type){root.innerHTML='<div class="task-empty">시간표에서 배정된 블럭을 선택하면 해당 블럭의 하위 투두를 관리할 수 있어요.</div>';return;}
+    const week=ensureWeek(state.currentWeek);
+    const tasks=Array.isArray(week.tasks[idx])?week.tasks[idx]:[];
+    const goals=Array.isArray(week.goals[type.id])?week.goals[type.id]:[];
+    const goalIds=new Set(goals.map(g=>g.id));
+    const loose=tasks.filter(t=>!t.parentId||!goalIds.has(t.parentId));
+    const subHtml=t=>`<div class="sub-entry"><div class="task-row ${t.done?'done':''}"><input type="checkbox" data-task-check="${t.id}" ${t.done?'checked':''} aria-label="하위 투두 완료">${labelOrInput(t.id,t.text,editingTaskId===t.id,'task-edit-input')}${t.comment?`<button class="task-comment-toggle" type="button" data-edit-comment="${t.id}">피드백 수정</button>`:`<button class="task-comment-toggle" type="button" data-toggle-comment="${t.id}" aria-expanded="false">피드백</button>`}<button class="task-comment-toggle" type="button" data-task-edit="${t.id}">수정</button><button class="task-delete" type="button" data-task-delete="${t.id}" aria-label="하위 투두 삭제">×</button></div><div class="task-comment-display" data-comment-display="${t.id}" ${t.comment?'':'hidden'}>${escapeHtml(t.comment||'')}<button type="button" data-edit-comment="${t.id}">수정</button></div><div class="task-feedback" data-feedback-panel="${t.id}" hidden><textarea data-task-comment="${t.id}" maxlength="1000" placeholder="작업 후 피드백: 결과, 느낀 점, 다음에 개선할 점">${escapeHtml(t.comment||'')}</textarea><button class="btn" type="button" data-save-comment="${t.id}">저장</button></div></div>`;
+    const parentHtml=g=>{
+      const subs=tasks.filter(t=>t.parentId===g.id);
+      return `<div class="parent-block"><div class="task-row parent-row ${g.done?'done':''}"><input type="checkbox" disabled ${g.done?'checked':''} aria-label="상위 투두 완료 여부(보기 전용)"><label>${escapeHtml(g.text)}</label>${subs.length?`<span class="sub-count">하위 ${subs.filter(t=>t.done).length}/${subs.length}</span>`:''}<button class="task-comment-toggle task-plus" type="button" data-add-sub="${g.id}" aria-label="하위 투두 추가" aria-expanded="${addingSubFor===g.id}">+</button></div>${subs.map(subHtml).join('')}${addingSubFor===g.id?`<div class="task-add sub-add"><input data-sub-input="${g.id}" maxlength="120" placeholder="하위 투두 추가" aria-label="하위 투두 입력" autocomplete="off"><button class="btn primary" type="button" data-sub-submit="${g.id}">추가</button><button class="btn" type="button" data-sub-cancel="${g.id}">닫기</button></div>`:''}</div>`;
+    };
+    root.innerHTML=`<div class="task-heading"><strong><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${type.color};margin-right:5px"></span>${DAYS[idx%7]}요일 · BLOCK ${String(Math.floor(idx/7)+1).padStart(2,'0')} · ${escapeHtml(type.name)}</strong><span>하위 ${tasks.filter(t=>t.done).length}/${tasks.length}개 완료</span></div><div class="task-list">${goals.length?goals.map(parentHtml).join(''):'<div class="task-empty">이 블럭 종류의 상위 투두가 없어요. 내 블럭 목록의 「목표」 버튼에서 상위 투두를 먼저 추가해 주세요.</div>'}${loose.length?`<div class="unassigned-title">상위 투두 미지정 (기존 할 일)</div>${loose.map(subHtml).join('')}`:''}</div>`;
+    wireFeedback(root,{toggle:'toggle-comment',toggleKey:'toggleComment',edit:'edit-comment',editKey:'editComment',panel:'feedback-panel',display:'comment-display'});
+    const refresh=()=>{touchWeek();renderAll();};
+    root.querySelectorAll('[data-task-check]').forEach(el=>el.addEventListener('change',()=>{const task=tasks.find(t=>t.id===el.dataset.taskCheck);if(task)task.done=el.checked;refresh();}));
+    root.querySelectorAll('[data-task-edit]').forEach(el=>el.addEventListener('click',()=>{editingTaskId=el.dataset.taskEdit;renderTasks();}));
+    if(editingTaskId){ const t=tasks.find(x=>x.id===editingTaskId); if(t) wireInlineEdit(root,`task-edit-input="${t.id}"`,v=>{ if(v) t.text=v; else toast('내용을 입력해 주세요.'); editingTaskId=null; refresh(); },()=>{editingTaskId=null;renderTasks();}); else editingTaskId=null; }
+    root.querySelectorAll('[data-task-delete]').forEach(el=>el.addEventListener('click',()=>{week.tasks[idx]=tasks.filter(t=>t.id!==el.dataset.taskDelete);refresh();}));
+    root.querySelectorAll('[data-save-comment]').forEach(el=>el.addEventListener('click',()=>{const task=tasks.find(t=>t.id===el.dataset.saveComment);const input=root.querySelector(`[data-task-comment="${el.dataset.saveComment}"]`);if(task&&input){task.comment=input.value.trim();refresh();toast('피드백을 저장했어요.');}}));
+    root.querySelectorAll('[data-add-sub]').forEach(el=>el.addEventListener('click',()=>{addingSubFor=addingSubFor===el.dataset.addSub?null:el.dataset.addSub;renderTasks();const inp=root.querySelector('[data-sub-input]');if(inp)inp.focus();}));
+    root.querySelectorAll('[data-sub-cancel]').forEach(el=>el.addEventListener('click',()=>{addingSubFor=null;renderTasks();}));
+    const addSub=goalId=>{const input=root.querySelector(`[data-sub-input="${goalId}"]`);const text=input.value.trim();if(!text){toast('하위 투두를 입력해 주세요.');input.focus();return;}if(!Array.isArray(week.tasks[idx]))week.tasks[idx]=[];week.tasks[idx].push({id:uid(),text,done:false,comment:'',parentId:goalId});addingSubFor=goalId;touchWeek();renderAll();$('taskModal').classList.add('open');const next=$('taskContent').querySelector('[data-sub-input]');if(next)next.focus();};
+    root.querySelectorAll('[data-sub-submit]').forEach(el=>el.addEventListener('click',()=>addSub(el.dataset.subSubmit)));
+    root.querySelectorAll('[data-sub-input]').forEach(el=>el.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSub(el.dataset.subInput);}else if(e.key==='Escape'){e.stopPropagation();addingSubFor=null;renderTasks();}}));
+  }
   function renderHistory() {
     const entries=Object.keys(state.weeks).filter(key=>{const w=state.weeks[key];return (w.slots||[]).some(Boolean)||Object.values(w.tasks||{}).some(tasks=>Array.isArray(tasks)&&tasks.length>0)||Object.values(w.goals||{}).some(goals=>Array.isArray(goals)&&goals.length>0);}).sort((a,b)=>b.localeCompare(a));
     if(!entries.length){$('historyList').innerHTML='<div class="empty-history">아직 기록이 없어요.<br>블럭을 배정하거나 할 일을 추가하면 자동으로 기록돼요.</div>';return;}
